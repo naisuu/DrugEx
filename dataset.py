@@ -84,6 +84,9 @@ def corpus(input, output, is_sdf=False, requires_clean=True, is_isomerice=False)
 
 
 def _download_chembl_file():
+    """
+    Support function that downloads the necessary ChEMBL data file "chembl_26.sdf.gz" to the data folder.
+    """
     import requests
 
     url = 'https://ftp.ebi.ac.uk/pub/databases/chembl/ChEMBLdb/releases/chembl_26/chembl_26.sdf.gz'
@@ -105,6 +108,8 @@ if __name__ == '__main__':
             _download_chembl_file()
         except Exception as e:  # TODO: Expand exception clause after testing edge-cases
             print(f'Something went wrong: {e}')
+            print('Try downloading the dataset manually from the following url:'
+                  ' https://ftp.ebi.ac.uk/pub/databases/chembl/ChEMBLdb/releases/chembl_26/chembl_26.sdf.gz')
 
     corpus('data/chembl_26.sdf.gz', 'data/chembl', is_sdf=True)
     corpus('data/LIGAND_RAW.tsv', 'data/ligand', is_sdf=False)

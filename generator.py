@@ -33,7 +33,8 @@ class Generator(nn.Module):
             h[0, batch_size, 0] = labels
         if self.is_lstm:
             c = torch.rand(3, batch_size, self.hidden_size).to(utils.dev)
-        return (h, c) if self.is_lstm else h
+            return h, c
+        return h
 
     def likelihood(self, target):
         batch_size, seq_len = target.size()
