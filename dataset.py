@@ -1,9 +1,11 @@
+import os
 import pandas as pd
 from rdkit import Chem
 from rdkit import rdBase
 from tqdm import tqdm
 import gzip
 import utils
+
 rdBase.DisableLog('rdApp.info')
 
 
@@ -81,7 +83,29 @@ def corpus(input, output, is_sdf=False, requires_clean=True, is_isomerice=False)
     log.to_csv(output + '_corpus.txt', sep='\t', index=False)
 
 
+def _download_chembl_file():
+    import requests
+
+    url = 'https://ftp.ebi.ac.uk/pub/databases/chembl/ChEMBLdb/releases/chembl_26/chembl_26.sdf.gz'
+    filename = url.split('/')[-1]
+    with requests.get(url, stream=True, verify=False) as response:
+        response.raise_for_status()
+        file_size = int(response.headers.get('content-length', 0))
+        pbar = tqdm(total=file_size, desc=f'ChEMBL data: {filename}', unit='B', unit_scale=True)
+        with open(f'data/{filename}', 'wb') as f:
+            for chunk in response.iter_content(chunk_size=8192):
+                f.write(chunk)
+                pbar.update(len(chunk))
+        pbar.close()
+
+
 if __name__ == '__main__':
+    if not os.path.exists('data/chembl_26.sdf.gz'):
+        try:
+            _download_chembl_file()
+        except Exception as e:  # TODO: Expand exception clause after testing edge-cases
+            print(f'Something went wrong: {e}')
+
     corpus('data/chembl_26.sdf.gz', 'data/chembl', is_sdf=True)
     corpus('data/LIGAND_RAW.tsv', 'data/ligand', is_sdf=False)
     # corpus('data/guacamol.smiles', 'data/guacamol', requires_clean=True, is_sdf=False)
