@@ -1,3 +1,5 @@
+from typing import Optional, List
+
 import pandas as pd
 import numpy as np
 from rdkit import Chem
@@ -46,7 +48,8 @@ class Predictor:
             try:
                 fp = AllChem.GetMorganFingerprintAsBitVect(mol, radius, nBits=bit_len)
                 DataStructs.ConvertToNumpyArray(fp, fps[i, :])
-            except: pass
+            except:
+                pass
         return fps
 
     @classmethod
@@ -74,7 +77,8 @@ class Similarity:
             try:
                 fp = get_fingerprint(mol, fp_type=self.fp_type)
                 scores[i] = DataStructs.TanimotoSimilarity(self.fp, fp)
-            except: continue
+            except:
+                continue
         return scores
 
 
@@ -89,7 +93,8 @@ class Scaffold:
             try:
                 match = mol.HasSubstructMatch(self.frag)
                 scores[i] = (match == self.is_match)
-            except: continue
+            except:
+                continue
         return scores
 
 
@@ -156,8 +161,14 @@ class AtomCounter:
                     scores[i] = len(mol.GetAtoms())
                 else:
                     scores[i] = sum(1 for a in mol.GetAtoms() if a.GetSymbol() == self.element)
-            except: continue
+            except:
+                continue
         return scores
+
+
+def h_parse_molecular_formula(match):
+    count = 1 if not match[1] else int(match[1])
+    return match[0], count
 
 
 class Isomer:
@@ -192,11 +203,12 @@ class Isomer:
         matches = re.findall(r'([A-Z][a-z]*)(\d*)', formula)
 
         # Convert matches to the required format
-        results = []
-        for match in matches:
-            # convert count to an integer, and set it to 1 if the count is not visible in the molecular formula
-            count = 1 if not match[1] else int(match[1])
-            results.append((match[0], count))
+        results = [h_parse_molecular_formula(match) for match in matches]
+        # results = []
+        # for match in matches:
+        #     # convert count to an integer, and set it to 1 if the count is not visible in the molecular formula
+        #     count = 1 if not match[1] else int(match[1])
+        #     results.append((match[0], count))
 
         return results
 
@@ -226,7 +238,7 @@ class Env:
         """
         Initialized methods for the construction of environment.
         Args:
-            objs (List[Ojective]): a list of objectives.
+            objs (List[Objective]): a list of objectives.
             mods (List[Modifier]): a list of modifiers, and its length
                 equals the size of objs.
             keys (List[str]): a list of strings as the names of objectives,
@@ -274,7 +286,7 @@ class Env:
         return preds
 
     @classmethod
-    def calc_fps(cls, mols, fp_type='ECFP6'):
+    def calc_fps(cls, mols, fp_type='ECFP6') -> List[Optional[np.ndarray]]:
         fps = []
         for i, mol in enumerate(mols):
             try:

@@ -8,8 +8,6 @@ import time
 import numpy as np
 
 
-
-
 class PGLearner(object):
     """ Reinforcement learning framework with policy gradient. This class is the base structure for all
         policy gradient-based  deep reinforcement learning models.
@@ -23,6 +21,7 @@ class PGLearner(object):
 
         prior: The auxiliary model which is defined differently in each methods.
     """
+
     def __init__(self, agent, env, prior=None, memory=None, mean_func='geometric'):
         self.replay = 10
         self.agent = agent
@@ -53,7 +52,7 @@ class PGLearner(object):
             smiles = [self.agent.voc.decode(s) for s in seqs[ix]]
             scores = self.env(smiles, is_smiles=True)
 
-            desire = (scores.DESIRE).sum() / self.n_samples
+            desire = scores.DESIRE.sum() / self.n_samples
             score = scores[self.env.keys].values.mean()
             valid = scores.VALID.mean()
 
@@ -92,6 +91,7 @@ class Reinvent(PGLearner):
         prior (models.Generator): The prior network which is constructed by deep learning model
                                    and ensure the agent to generate molecules with correct grammar.
     """
+
     def __init__(self, agent, env, prior, epsilon=60, beta=0.5):
         super(Reinvent, self).__init__(agent, env, prior)
         for param in self.prior.parameters():
@@ -111,7 +111,7 @@ class Reinvent(PGLearner):
         smiles = [self.agent.voc.decode(s) for s in seqs]
 
         scores = self.env.calc_reward(smiles, self.scheme)[:, 0]
-        ds = TensorDataset(seqs, torch.Tensor(scores-self.beta).to(utils.dev))
+        ds = TensorDataset(seqs, torch.Tensor(scores - self.beta).to(utils.dev))
         loader = DataLoader(ds, batch_size=self.n_samples, shuffle=True)
 
         for seq, score in loader:
@@ -150,6 +150,7 @@ class DrugEx(PGLearner):
         prior (models.Generator): The pre-trained network which is constructed by deep learning model
                                    and ensure the agent to explore the approriate chemical space.
     """
+
     def __init__(self, agent, env, prior=None, memory=None):
         super(DrugEx, self).__init__(agent, env, prior, memory=memory)
 
@@ -188,6 +189,7 @@ class Organic(PGLearner):
         prior (models.Generator): The discriminator which is constrcuted by deep learning model and
                                    judge if the generated molecule is similar to the real molecule.
     """
+
     def __init__(self, agent, env, prior, real=None, memory=None):
         super(Organic, self).__init__(agent, env, prior, memory=memory)
         self.epsilon = 0.5
@@ -269,6 +271,7 @@ class Evolve(PGLearner):
         prior (models.Generator): The pre-trained network which is constructed by deep learning model
                                    and ensure the agent to explore the approriate chemical space.
     """
+
     def __init__(self, agent, env, prior=None, crover=None, mean_func='geometric', memory=None):
         super(Evolve, self).__init__(agent, env, prior, mean_func=mean_func, memory=memory)
         self.crover = crover
@@ -301,7 +304,7 @@ class Evolve(PGLearner):
 
         self.agent.PGLoss(loader)
         t3 = time.time()
-        print(t1 - start, t2-t1, t3-t2)
+        print(t1 - start, t2 - t1, t3 - t2)
 
     def fit(self):
         best = 0
@@ -324,7 +327,7 @@ class Evolve(PGLearner):
             smiles = smiles[ix]
             scores = self.env(smiles, is_smiles=True)
 
-            desire = (scores.DESIRE).sum() / self.n_samples
+            desire = scores.DESIRE.sum() / self.n_samples
             if self.mean_func == 'arithmetic':
                 score = scores[self.env.keys].values.sum() / self.n_samples / len(self.env.keys)
             else:

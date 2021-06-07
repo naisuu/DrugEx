@@ -96,7 +96,7 @@ def similarity_sort(swarm, fps, is_gpu=False):
     Args:
         swarm (np.ndarray): m x n scorig matrix, where m is the number of samples
             and n is the number of objectives.
-        fps (np.ndarray): m-d vector as fingerprints for all the molecules
+        fps (List[Optional[np.ndarray]]): m-d vector as fingerprints for all the molecules
 
         is_gpu (bool): if True, the algorithem will be implemented by PyTorch and ran on GPUs, otherwise,
             it will be implemented by Numpy and ran on CPUs.
