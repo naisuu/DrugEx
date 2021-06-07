@@ -1,9 +1,16 @@
+import aizynthfinder.aizynthfinder
 from aizynthfinder.aizynthfinder import AiZynthFinder
 import tensorflow as tf
+import os
 
 gpu_devices = tf.config.experimental.list_physical_devices('GPU')
 for device in gpu_devices:
     tf.config.experimental.set_memory_growth(device, True)
+
+if not os.path.exists("azf"):
+    os.mkdir("azf")
+
+# TODO: run the download public data script if azf file does not contain hdf5 files.
 
 config = "azf/config.yml"
 finder = AiZynthFinder(configfile=config)

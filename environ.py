@@ -289,7 +289,7 @@ def DNN(X, y, X_ind, y_ind, out, reg=False):
     return cvs, inds / 5
 
 
-def Train_RF(X, y, out, reg=False):
+def Train_RF(X: np.ndarray, y: np.ndarray, out: str, reg=False):
     if reg:
         model = RandomForestRegressor(n_estimators=1000, n_jobs=10)
     else:
@@ -299,6 +299,14 @@ def Train_RF(X, y, out, reg=False):
 
 
 def mt_task(fname, out, reg=False, is_extra=True, time_split=False):
+
+    if not os.path.exists(out):
+        try:
+            os.makedirs(out)
+        except PermissionError as pe:
+            print(f'Not enough permissions to create directory: {pe}...creating log file in root instead.')
+            out = "."
+
     df = pd.read_table(fname)[pair].dropna(subset=pair[1:2])
     df = df[df.Target_ChEMBL_ID.isin(trgs)]
     year = df.groupby(pair[1])[pair[-1:]].min().dropna()
@@ -322,11 +330,12 @@ def mt_task(fname, out, reg=False, is_extra=True, time_split=False):
     df_test = df.loc[test_ix] if time_split else df.sample(len(test_ix))
     df_data = df.drop(df_test.index)
     df_data = df_data.sample(len(df_data))
+    # TODO: make this customizable instead of running each and every alg? or make separate func
     for alg in ['RF', 'MT_DNN', 'SVM', 'PLS', 'KNN', 'DNN']:
         if alg == 'MT_DNN':
             test_x = utils.Predictor.calc_fp([Chem.MolFromSmiles(mol) for mol in df_test.index])
             data_x = utils.Predictor.calc_fp([Chem.MolFromSmiles(mol) for mol in df_data.index])
-            scaler = Scaler();
+            scaler = Scaler()
             scaler.fit(data_x)
             test_x = scaler.transform(test_x)
             data_x = scaler.transform(data_x)
@@ -395,9 +404,12 @@ def single_task(feat, alg='RF', reg=False, is_extra=True):
         test_x = scaler.transform(test_x)
         data_x = scaler.transform(data_x)
     else:
-        X = np.concatenate([data_x, test_x], axis=0)
-        y = np.concatenate([data.values, test.values], axis=0)
-        Train_RF(X, y[:, 0], out=out + '.pkg', reg=reg)
+        # data_x has shape (5332, 2067)
+        # test_x has shape (620, 2067)
+        X = np.concatenate([data_x, test_x], axis=0)  # ndarray: (5332, 2067)
+        # data is a Series of shape (5332,)
+        y = np.concatenate([data.values, test.values], axis=0)  # ndarray: (5952,)
+        Train_RF(X, y, out=out + '.pkg', reg=reg)  # used to be y[:, 0], but since it's 1-d there's no need
     data, test = data.to_frame(name='Label'), test.to_frame(name='Label')
     data['Score'], test['Score'] = cross_validation(data_x, data.values, test_x, test.values, alg, out, reg=reg)
     data.to_csv(out + '.cv.tsv', sep='\t')
@@ -432,15 +444,16 @@ if __name__ == '__main__':
 
     for reg in [False, True]:
         LR = 1e-4 if reg else 1e-5
-        for chembl in trgs:
-            single_task(chembl, 'DNN', reg=reg)
-            single_task(chembl, 'RF', reg=reg)
-            single_task(chembl, 'SVM', reg=reg)
-            if reg:
-                single_task(chembl, 'PLS', reg=reg)
-            else:
-                single_task(chembl, 'NB', reg=reg)
-            single_task(chembl, 'KNN', reg=reg)
+        # for chembl in trgs:
+        #     # TODO: temporarily turned off specific models for testing, remember to turn them back on at the end.
+        #     single_task(chembl, 'DNN', reg=reg)
+        #     single_task(chembl, 'RF', reg=reg)
+        #     single_task(chembl, 'SVM', reg=reg)
+        #     if reg:
+        #         single_task(chembl, 'PLS', reg=reg)
+        #     else:
+        #         single_task(chembl, 'NB', reg=reg)
+        #     single_task(chembl, 'KNN', reg=reg)
 
     mt_task('data/LIGAND_RAW.tsv', 'output/random_split/', reg=reg, time_split=False)
     mt_task('data/LIGAND_RAW.tsv', 'output/time_split/', reg=reg, time_split=True)
