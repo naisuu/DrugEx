@@ -3,9 +3,9 @@ import torch
 from torch import nn
 from torch import optim
 from torch.nn import functional as F
+import os
 import time
 import utils
-
 
 class Base(nn.Module):
     """ This class is the base structure for all of classification/regression DNN models.
@@ -37,7 +37,14 @@ class Base(nn.Module):
         best_loss = np.inf
         # record the epoch when optimal model is saved.
         last_save = 0
-        log = open(out + '.log', 'w')
+
+        if not os.path.exists(out):
+            try:
+                os.makedirs(out)
+            except PermissionError as pe:
+                print(f'Not enough permissions to create directory: {pe}...creating log file in root instead.')
+
+        log = open(file=out + '.log', mode='w+')
         for epoch in range(epochs):
             t0 = time.time()
             for param_group in optimizer.param_groups:
@@ -72,7 +79,8 @@ class Base(nn.Module):
                 print('[Performance] loss_valid is not improved.', file=log)
                 # early stopping, if the performance on validation is not improved in 100 epochs.
                 # The model training will stop in order to save time.
-                if epoch - last_save > 100: break
+                if epoch - last_save > 100:
+                    break
         log.close()
         self.load_state_dict(torch.load(out + '.pkg'))
 

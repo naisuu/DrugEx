@@ -63,7 +63,7 @@ def SVM(X, y, X_ind, y_ind, reg=False):
         model.C = params['C']
         model.gamma = params['gamma']
         if not reg:
-            model.probability=True
+            model.probability = True
         model.fit(X[trained], y[trained], sample_weight=[1 if v >= 4 else 0.1 for v in y[trained]])
         if reg:
             cvs[valided] = model.predict(X[valided])
@@ -282,7 +282,7 @@ def DNN(X, y, X_ind, y_ind, out, reg=False):
         train_loader = DataLoader(train_set, batch_size=BATCH_SIZE)
         valid_set = TensorDataset(torch.Tensor(X[valided]), torch.Tensor(y[valided]))
         valid_loader = DataLoader(valid_set, batch_size=BATCH_SIZE)
-        net = NET(X.shape[1], y.shape[1], reg=reg)
+        net = NET(X.shape[1], y.shape[1], is_reg=reg)
         net.fit(train_loader, valid_loader, out='%s_%d' % (out, i), epochs=N_EPOCH, lr=LR)
         cvs[valided] = net.predict(valid_loader)
         inds += net.predict(indep_loader)
@@ -326,7 +326,8 @@ def mt_task(fname, out, reg=False, is_extra=True, time_split=False):
         if alg == 'MT_DNN':
             test_x = utils.Predictor.calc_fp([Chem.MolFromSmiles(mol) for mol in df_test.index])
             data_x = utils.Predictor.calc_fp([Chem.MolFromSmiles(mol) for mol in df_data.index])
-            scaler = Scaler(); scaler.fit(data_x)
+            scaler = Scaler();
+            scaler.fit(data_x)
             test_x = scaler.transform(test_x)
             data_x = scaler.transform(data_x)
 
@@ -344,7 +345,8 @@ def mt_task(fname, out, reg=False, is_extra=True, time_split=False):
                 test_x = utils.Predictor.calc_fp([Chem.MolFromSmiles(mol) for mol in test_y.index])
                 data_x = utils.Predictor.calc_fp([Chem.MolFromSmiles(mol) for mol in data_y.index])
                 if alg != 'RF':
-                    scaler = Scaler(); scaler.fit(data_x)
+                    scaler = Scaler();
+                    scaler.fit(data_x)
                     test_x = scaler.transform(test_x)
                     data_x = scaler.transform(data_x)
                 else:
@@ -388,7 +390,8 @@ def single_task(feat, alg='RF', reg=False, is_extra=True):
     data_x = utils.Predictor.calc_fp([Chem.MolFromSmiles(mol) for mol in data.index])
     out = 'output/single/%s_%s_%s' % (alg, 'REG' if reg else 'CLS', feat)
     if alg != 'RF':
-        scaler = Scaler(); scaler.fit(data_x)
+        scaler = Scaler()
+        scaler.fit(data_x)
         test_x = scaler.transform(test_x)
         data_x = scaler.transform(data_x)
     else:
