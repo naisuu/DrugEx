@@ -353,7 +353,7 @@ def mt_task(fname, out, reg=False, is_extra=True, time_split=False):
                 test_x = utils.Predictor.calc_fp([Chem.MolFromSmiles(mol) for mol in test_y.index])
                 data_x = utils.Predictor.calc_fp([Chem.MolFromSmiles(mol) for mol in data_y.index])
                 if alg != 'RF':
-                    scaler = Scaler();
+                    scaler = Scaler()
                     scaler.fit(data_x)
                     test_x = scaler.transform(test_x)
                     data_x = scaler.transform(data_x)

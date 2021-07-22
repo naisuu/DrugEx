@@ -20,6 +20,7 @@ def training(is_lstm=True):
 
     prior = models.Generator(voc, is_lstm=is_lstm)
     if not os.path.exists(netP_path + '.pkg'):
+        print(f"{netP_path}.pkg could not be found, creating from chembl corpus.")
         chembl = pd.read_table("data/chembl_corpus.txt").Token
         chembl = torch.LongTensor(voc.encode([seq.split(' ') for seq in chembl]))
         chembl = DataLoader(chembl, batch_size=BATCH_SIZE, shuffle=True, drop_last=True)

@@ -5,6 +5,8 @@ from rdkit import rdBase
 import numpy as np
 from typing import List, Iterable, Optional
 from rdkit.Chem.MolStandardize import rdMolStandardize
+from tqdm import tqdm
+
 
 torch.set_num_threads(1)
 rdBase.DisableLog('rdApp.error')
@@ -48,7 +50,7 @@ class Voc:
             tokens (torch.LongTensor): a long tensor containing all of the indices of given tokens.
         """
         tokens = torch.zeros(len(smiles), self.max_len).long()
-        for i, smile in enumerate(smiles):
+        for i, smile in tqdm(enumerate(smiles), leave=True, position=0):
             for j, char in enumerate(smile):
                 try:
                     tokens[i, j] = self.tk2ix[char]
