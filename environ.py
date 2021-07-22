@@ -299,7 +299,6 @@ def Train_RF(X: np.ndarray, y: np.ndarray, out: str, reg=False):
 
 
 def mt_task(fname, out, reg=False, is_extra=True, time_split=False):
-
     if not os.path.exists(out):
         try:
             os.makedirs(out)

@@ -50,7 +50,12 @@ class Voc:
         tokens = torch.zeros(len(smiles), self.max_len).long()
         for i, smile in enumerate(smiles):
             for j, char in enumerate(smile):
-                tokens[i, j] = self.tk2ix[char]
+                try:
+                    tokens[i, j] = self.tk2ix[char]
+                except KeyError as ke:
+                    # TODO: Ask if this is supposed to be the case
+                    print(f"Character '{char}' is not present in token-to-index dictionary.")
+                    continue
         return tokens
 
     def decode(self, tensor):
